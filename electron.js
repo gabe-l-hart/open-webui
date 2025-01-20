@@ -91,6 +91,7 @@ async function waitForReady(maxTimeout = 50000, maxRetries = 100, attempt = 0) {
             setTimeout(async () => {
                 console.log(`Attempt ${attempt + 1} timed out, retrying in ${timeout / 1000} seconds...`);
                 await waitForReady(PORT, maxTimeout - timeout, maxRetries, attempt + 1);
+                resolve();
             }, timeout).then;
         });
         req.setTimeout(1000, () => { // Short timeout of 1 second
