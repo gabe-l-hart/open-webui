@@ -3,7 +3,16 @@ import * as http from 'http';
 import * as net from 'net';
 import { spawn } from 'child_process';
 
+/*-- Globals -----------------------------------------------------------------*/
+
+// The port the server will run on
 let PORT;
+
+// The child process managing the server
+let SERVER_PROCESS;
+
+/*-- Helpers -----------------------------------------------------------------*/
+
 async function findAvailablePort() {
     const portRange = [8090, 80808];
     for (let currentPort of portRange) {
@@ -43,22 +52,23 @@ async function launchOpenWebUI() {
         throw new Error('No available ports found in the specified range.');
     }
 
+    // Launch the server
     const env = process.env;
     env.WEBUI_AUTH = 'False';
-
     const command = `open-webui serve --port ${PORT}`;
     console.log(`Launching subprocess with command: ${command}`);
     const subprocessEnv = { ...process.env };
     subprocessEnv.WEBUI_AUTH = 'False';
-    const child = spawn(command, { shell: true, env: subprocessEnv });
+    SERVER_PROCESS = spawn(command, { shell: true, env: subprocessEnv });
 
-    child.stderr.on('data', (data) => {
+    // Bind the process to the subprocess's stdout and stderr streams.
+    SERVER_PROCESS.stderr.on('data', (data) => {
         process.stderr.write(data);
     });
-    child.stdout.on('data', (data) => {
+    SERVER_PROCESS.stdout.on('data', (data) => {
         process.stdout.write(data);
     });
-    child.stdout.on('close', (code) => {
+    SERVER_PROCESS.stdout.on('close', (code) => {
         console.log(`Child process exited with code : ${code}`);
     });
 }
@@ -120,9 +130,15 @@ app.on('window-all-closed', () => {
     }
 });
 
-//TODO: Make sure the same port is recovered
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+    if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+    }
+});
+
+app.on('will-quit', () => {
+    if (SERVER_PROCESS) {
+        console.log('Stopping Open WebUI');
+        SERVER_PROCESS.kill();
+    }
 });
