@@ -83,7 +83,11 @@ if conda --version &>/dev/null; then
     conda_cmd="conda"
 fi
 
-activate_cmd="$conda_cmd activate"
+if [ "$HOST_OS" == "Windows" ]; then
+    activate_cmd="$conda_cmd activate"
+else
+    activate_cmd="source activate"
+fi
 
 # Get a version of conda to create the standalone env
 if [ "$conda_cmd" == "" ]; then
