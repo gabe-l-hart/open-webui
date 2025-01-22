@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron'
 import * as fs from 'fs';
 import * as http from 'http';
+import * as os from 'os';
 import * as net from 'net';
 import * as path from 'path';
 import { spawn } from 'child_process';
@@ -63,21 +64,23 @@ async function launchOpenWebUI() {
     const appPath = app.getAppPath();
     const contentsPath = path.join(appPath, '..', '..');
     const pythonpathEnv = (await fs.promises.readFile(path.join(contentsPath, 'pythonpath.env'))).toString().trim();
-    const pathEnv = (await fs.promises.readFile(path.join(contentsPath, 'path.env'))).toString().trim();
+    let cmdExe = path.join(contentsPath, 'venv', 'bin', 'open-webui');
+    if (await os.platform() == 'win32') {
+        cmdExe = path.join(contentsPath, 'venv', 'Scripts', 'open-webui');
+    }
     console.log(`appPath: ${appPath}`);
     console.log(`contentsPath: ${contentsPath}`);
     console.log(`pythonpathEnv: ${pythonpathEnv}`);
-    console.log(`pathEnv: ${pathEnv}`);
+    console.log(`cmdExe: ${cmdExe}`);
 
     // Launch the server
     const env = process.env;
     env.WEBUI_AUTH = 'False';
-    const command = `open-webui serve --port ${PORT}`;
+    const command = `${cmdExe} serve --port ${PORT}`;
     console.log(`Launching subprocess with command: ${command}`);
     const subprocessEnv = { ...process.env };
     subprocessEnv.WEBUI_AUTH = 'False';
     subprocessEnv.PYTHONPATH = pythonpathEnv;
-    subprocessEnv.PATH = `${pathEnv}:${process.env.PATH}`;
     SERVER_PROCESS = spawn(command, { shell: true, cwd: contentsPath, env: subprocessEnv });
 
     // Bind the process to the subprocess's stdout and stderr streams.
