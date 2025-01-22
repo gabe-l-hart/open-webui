@@ -67,6 +67,8 @@ async function launchOpenWebUI() {
     let cmdExe = path.join(contentsPath, 'venv', 'bin', 'open-webui');
     if (await os.platform() == 'win32') {
         cmdExe = path.join(contentsPath, 'venv', 'Scripts', 'open-webui');
+    } else {
+        cmdExe = cmdExe.replace(" ", "\\ ");
     }
     console.log(`appPath: ${appPath}`);
     console.log(`contentsPath: ${contentsPath}`);
