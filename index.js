@@ -1,6 +1,8 @@
 import { app, BrowserWindow } from 'electron'
+import * as fs from 'fs';
 import * as http from 'http';
 import * as net from 'net';
+import * as path from 'path';
 import { spawn } from 'child_process';
 
 /*-- Globals -----------------------------------------------------------------*/
@@ -36,9 +38,6 @@ async function findAvailablePort() {
 
                     currentPort++;
                 });
-            }).then((port) => {
-                console.log(`FOUND AVAILABLE PORT: ${port}`);
-                return port;
             });
             return availablePort;
         } catch {
@@ -52,6 +51,14 @@ async function launchOpenWebUI() {
         throw new Error('No available ports found in the specified range.');
     }
 
+    // Make sure the local python env is accessible when launching the
+    // subprocess
+    // TODO: Handle different path layouts for dev/prod and by platform!
+    const appPath = app.getAppPath();
+    const contentsPath = path.join(appPath, '..', '..');
+    const pythonpathEnv = await fs.promises.readFile(path.join(contentsPath, 'pythonpath.env'));
+    const pathEnv = await fs.promises.readFile(path.join(contentsPath, 'path.env'));
+
     // Launch the server
     const env = process.env;
     env.WEBUI_AUTH = 'False';
@@ -59,7 +66,9 @@ async function launchOpenWebUI() {
     console.log(`Launching subprocess with command: ${command}`);
     const subprocessEnv = { ...process.env };
     subprocessEnv.WEBUI_AUTH = 'False';
-    SERVER_PROCESS = spawn(command, { shell: true, env: subprocessEnv });
+    subprocessEnv.PYTHONPATH = pythonpathEnv;
+    subprocessEnv.PATH = `${pathEnv}:${process.env.PATH}`;
+    SERVER_PROCESS = spawn(command, { shell: true, cwd: contentsPath, env: subprocessEnv });
 
     // Bind the process to the subprocess's stdout and stderr streams.
     SERVER_PROCESS.stderr.on('data', (data) => {
