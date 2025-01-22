@@ -56,8 +56,12 @@ async function launchOpenWebUI() {
     // TODO: Handle different path layouts for dev/prod and by platform!
     const appPath = app.getAppPath();
     const contentsPath = path.join(appPath, '..', '..');
-    const pythonpathEnv = await fs.promises.readFile(path.join(contentsPath, 'pythonpath.env'));
-    const pathEnv = await fs.promises.readFile(path.join(contentsPath, 'path.env'));
+    const pythonpathEnv = (await fs.promises.readFile(path.join(contentsPath, 'pythonpath.env'))).toString().trim();
+    const pathEnv = (await fs.promises.readFile(path.join(contentsPath, 'path.env'))).toString().trim();
+    console.log(`appPath: ${appPath}`);
+    console.log(`contentsPath: ${contentsPath}`);
+    console.log(`pythonpathEnv: ${pythonpathEnv}`);
+    console.log(`pathEnv: ${pathEnv}`);
 
     // Launch the server
     const env = process.env;
