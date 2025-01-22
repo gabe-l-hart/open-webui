@@ -72,12 +72,15 @@ cd $working_dir
 # NOTE: Run in a subshell so that system python is not modified for
 #   electron-builder
 
+# Conda plays tricks with bash, so look for a bash_profile to source
+if [ -f $HOME/.bash_profile ]; then
+    source $HOME/.bash_profile
+fi
+
 # Look for a working conda install across platforms
 conda_cmd=""
-if command -v conda &>/dev/null; then
+if conda --version &>/dev/null; then
     conda_cmd="conda"
-elif command -v conda.bat &>/dev/null; then
-    conda_cmd="conda.bat"
 fi
 
 activate_cmd="$conda_cmd activate"
@@ -101,7 +104,7 @@ if [ "$conda_cmd" == "" ]; then
 fi
 
 # Create the standalone python 3.11 environment with everything copied in
-if ! [ -d venv  ]; then
+if ! [ -f venv/bin/open-webui ] && ! [ -f venv/Scripts/open-webui.exe ]; then
     echo "CREATING venv..."
     $conda_cmd create --yes python=3.11 -p venv --copy
 fi
