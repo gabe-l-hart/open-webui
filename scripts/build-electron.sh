@@ -87,7 +87,6 @@ pip install $source_dir
 python -c 'import sys, os;
 path_val=",".join([os.path.relpath(x, os.getcwd()) for x in sys.path if x]);
 print(path_val)' > pythonpath.env
-echo 'venv/bin' > path.env
 )
 
 ## App #########################################################################
