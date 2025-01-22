@@ -18,7 +18,7 @@
 		"cy:open": "cypress open",
 		"test:frontend": "vitest --passWithNoTests",
 		"pyodide:fetch": "node scripts/prepare-pyodide.js",
-		"start:electron": "electron ./electron.js"
+		"start:electron": "electron ."
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "3.2.2",
@@ -114,10 +114,14 @@
 	},
 	"build": {
 		"appId": "com.open-webui.app",
-		"appImage": {
-			"artifactName": "static/favicon.png",
-			"desktop": "static/favicon.png"
+		"directories": {
+			"buildResources": "resources"
 		},
+		"extraFiles": [
+			"venv",
+			"pythonpath.env",
+			"path.env"
+		],
 		"productName": "Open WebUI"
 	}
 }
