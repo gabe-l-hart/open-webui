@@ -13,6 +13,9 @@ let PORT;
 // The child process managing the server
 let SERVER_PROCESS;
 
+// Dock bounce request
+let BOUNCE_ID;
+
 /*-- Helpers -----------------------------------------------------------------*/
 
 async function findAvailablePort() {
@@ -50,6 +53,9 @@ async function launchOpenWebUI() {
     if (!PORT) {
         throw new Error('No available ports found in the specified range.');
     }
+
+    // Indicate that the app is loading
+    BOUNCE_ID = app.dock.bounce('critical');
 
     // Make sure the local python env is accessible when launching the
     // subprocess
@@ -93,6 +99,10 @@ async function waitForReady(maxTimeout = 50000, maxRetries = 100, attempt = 0) {
         const req = http.request(`http://localhost:${PORT}/health`, (res) => {
             res.on('end', () => {
                 console.log('Open WebUI is up and running!');
+                if (BOUNCE_ID !== undefined) {
+                    app.dock.cancelBounce(BOUNCE_ID);
+                    BOUNCE_ID = undefined;
+                }
                 resolve();
             });
         });
@@ -124,7 +134,7 @@ function createWindow () {
         webPreferences: {
             nodeIntegration: true
         }
-    })
+    });
 
     // Load your web UI into this window
     win.loadURL(`http://localhost:${PORT}`);
