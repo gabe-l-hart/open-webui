@@ -56,7 +56,9 @@ async function launchOpenWebUI() {
     }
 
     // Indicate that the app is loading
-    BOUNCE_ID = app.dock.bounce('critical');
+    if (app.dock !== undefined) {
+        BOUNCE_ID = app.dock.bounce('critical');
+    }
 
     // Make sure the local python env is accessible when launching the
     // subprocess
