@@ -83,12 +83,6 @@ if conda --version &>/dev/null; then
     conda_cmd="conda"
 fi
 
-if [ "$HOST_OS" == "Windows" ]; then
-    activate_cmd="$conda_cmd activate"
-else
-    activate_cmd="source activate"
-fi
-
 # Get a version of conda to create the standalone env
 if [ "$conda_cmd" == "" ]; then
     echo "INSTALLING CONDA..."
@@ -112,20 +106,17 @@ if ! [ -f venv/bin/open-webui ] && ! [ -f venv/Scripts/open-webui.exe ]; then
     echo "CREATING venv..."
     $conda_cmd create --yes python=3.11 -p venv --copy
 fi
-$activate_cmd $PWD/venv
 
 # Install open-webui from the source dir. This will also build the frontend and
 # bundle it with the python package.
-if ! command -v open-webui &>/dev/null || [ "$force" == "1" ]; then
+if [ "$force" == "1" ] || ! $conda_cmd run --live-stream -p venv open-webui --help &>/dev/null; then
     echo "INSTALLING open-webui..."
-    pip install $source_dir
+    $conda_cmd run --live-stream -p venv pip install $source_dir
 fi
 
 # Figure out what the PYTHONPATH will need to be relative to the path the venv
 # will live in when installed.
-python -c 'import sys, os;
-path_val=",".join([os.path.relpath(x, os.getcwd()) for x in sys.path if x]);
-print(path_val)' > pythonpath.env
+$conda_cmd run --live-stream -p venv python -c 'import sys, os; print(",".join([os.path.relpath(x, os.getcwd()) for x in sys.path if x]))' > pythonpath.env
 )
 
 ## App #########################################################################
